@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Grade 10 · Students Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── Variables ─────────────────────────────────────────── */
+:root{
+  --bg:#07070a;
+  --s1:#0f0f13;
+  --s2:#161619;
+  --s3:#1e1e23;
+  --line:#272730;
+  --line2:#32323c;
+  --text:#f0f0f5;
+  --muted:#8e8e9a;
+  --dim:#55555f;
+  --red:#e03131;
+  --red2:#c92a2a;
+  --red3:#ff6b6b;
+  --glow:0 0 22px rgba(224,49,49,.25);
+  --glow2:0 0 40px rgba(224,49,49,.15);
+  --r:14px;
+  --sidebar:240px;
+  --topbar:58px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#333;border-radius:8px}
+
+/* ── Layout shell ──────────────────────────────────────── */
+.shell{display:flex;min-height:100vh}
+
+/* ── Sidebar ───────────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar);
+  background:var(--s1);
+  border-right:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  top:0;left:0;bottom:0;
+  z-index:50;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+.sidebar-brand{
+  padding:20px 16px 16px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;
+}
+.brand-logo{
+  width:38px;height:38px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--red),#8b0000);
+  display:grid;place-items:center;
+  font-family:'Syne',sans-serif;
+  font-weight:800;font-size:18px;
+  color:#fff;
+  flex-shrink:0;
+  box-shadow:0 4px 14px rgba(224,49,49,.4);
+}
+.brand-text{line-height:1.25}
+.brand-text strong{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;display:block}
+.brand-text span{font-size:.72rem;color:var(--muted)}
+
+.nav{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid transparent;
+  cursor:pointer;
+  transition:.18s;
+  font-size:.88rem;
+  color:var(--muted);
+  font-weight:500;
+  background:transparent;
+  width:100%;text-align:left;
+}
+.nav-item svg{flex-shrink:0;opacity:.7;transition:.18s}
+.nav-item:hover{background:var(--s2);color:var(--text);border-color:var(--line)}
+.nav-item.active{
+  background:linear-gradient(135deg,rgba(224,49,49,.18),rgba(224,49,49,.06));
+  color:#ff8080;
+  border-color:rgba(224,49,49,.35);
+}
+.nav-item.active svg{opacity:1}
+
+.sidebar-footer{
+  padding:12px;
+  border-top:1px solid var(--line);
+}
+.user-card{
+  padding:10px 12px;
+  border-radius:10px;
+  background:var(--s2);
+  border:1px solid var(--line);
+}
+.role-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:.7rem;
+  font-weight:600;
+  letter-spacing:.05em;
+  background:rgba(224,49,49,.15);
+  color:#ff8080;
+  border:1px solid rgba(224,49,49,.3);
+  margin-bottom:6px;
+}
+.role-badge.guest{background:rgba(142,142,154,.12);color:var(--muted);border-color:var(--line2)}
+.sidebar-footer-btns{display:flex;gap:6px;margin-top:8px}
+
+/* ── Main area ─────────────────────────────────────────── */
+.main{
+  margin-left:var(--sidebar);
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+
+/* ── Topbar ────────────────────────────────────────────── */
+.topbar{
+  height:var(--topbar);
+  background:rgba(7,7,10,.88);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;
+  padding:0 20px;
+  gap:12px;
+  position:sticky;top:0;z-index:40;
+}
+.topbar-title{
+  font-family:'Syne',sans-serif;
+  font-size:1rem;
+  font-weight:700;
+  flex:1;
+}
+.topbar-title span{color:var(--muted);font-weight:400;font-family:'DM Sans',sans-serif;font-size:.85rem;margin-left:6px}
+.hamburger{
+  display:none;
+  background:none;border:none;
+  color:var(--text);cursor:pointer;
+  padding:6px;
+}
+
+/* ── Content area ──────────────────────────────────────── */
+.content{flex:1;padding:20px}
+
+/* ── Buttons ───────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 14px;
+  border-radius:9px;
+  border:1px solid var(--line2);
+  background:var(--s2);
+  color:var(--text);
+  cursor:pointer;
+  font-size:.83rem;
+  font-family:'DM Sans',sans-serif;
+  font-weight:500;
+  transition:.18s;
+  white-space:nowrap;
+}
+.btn:hover{border-color:#555;background:var(--s3)}
+.btn-red{
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  border:none;color:#fff;
+  box-shadow:0 4px 14px rgba(224,49,49,.3);
+}
+.btn-red:hover{box-shadow:0 6px 20px rgba(224,49,49,.45);transform:translateY(-1px)}
+.btn-sm{padding:6px 10px;font-size:.78rem;border-radius:7px}
+.btn-outline-red{border-color:rgba(224,49,49,.4);color:#ff8080;background:rgba(224,49,49,.07)}
+.btn-outline-red:hover{background:rgba(224,49,49,.14);border-color:rgba(224,49,49,.6)}
+
+/* ── Hidden ────────────────────────────────────────────── */
+.hidden{display:none!important}
+
+/* ── Section ───────────────────────────────────────────── */
+.section{display:none;animation:fadeIn .22s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── Page header ───────────────────────────────────────── */
+.page-head{margin-bottom:20px}
+.page-head h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:4px}
+.page-head p{color:var(--muted);font-size:.87rem}
+
+/* ── Stat cards ────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat{
+  background:var(--s1);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:16px;
+  position:relative;overflow:hidden;
+}
+.stat::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(224,49,49,.06),transparent 60%);
+  pointer-events:none;
+}
+.stat-icon{
+  width:34px;height:34px;border-radius:9px;
+  background:rgba(224,49,49,.15);
+  display:grid;place-items:center;margin-bottom:12px;
+  color:var(--red3);
+}
+.stat-val{font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:800;line-height:1}
+.stat-label{font-size:.77rem;color:var(--muted);margin-top:4px;font-weight:500}
+
+/* ── Classes overview ──────────────────────────────────── */
+.classes-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+.class-chip{
+  background:var(--s1);border:1px solid var(--line);
+  border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;transition:.18s;
+}
+.class-chip:hover{border-color:rgba(224,49,49,.4);background:rgba(224,49,49,.06)}
+.class-chip.active-chip{
+  border-color:rgba(224,49,49,.6);
+  background:rgba(224,49,49,.12);
+  color:#ff8080;
+}
+.class-chip .cc-label{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem}
+.class-chip .cc-count{font-size:.72rem;color:var(--muted);margin-top:3px}
+
+/* ── Quick info panel ──────────────────────────────────── */
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.info-panel{
+  background:var(--s1);border:1px solid var(--line);
+  border-radius:var(--r);padding:16px;
+}
+.info-panel h4{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;margin-bottom:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+/* ── Forms ─────────────────────────────────────────────── */
+.card-panel{
+  background:var(--s1);border:1px solid var(--line);
+  border-radius:var(--r);padding:20px;margin-bottom:16px;
+}
+.section-label{
+  font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;
+  color:var(--red3);margin-bottom:12px;
+  display:flex;align-items:center;gap:6px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(224,49,49,.25),transparent)}
+.form-grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:.78rem;color:#bbb;font-weight:500}
+input,select,textarea{
+  padding:9px 12px;
+  border-radius:9px;
+  border:1px solid var(--line2);
+  background:#0c0c10;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:.88rem;
+  outline:none;
+  transition:.18s;
+  width:100%;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--red);
+  box-shadow:0 0 0 3px rgba(224,49,49,.12);
+}
+select option{background:#111}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+
+/* ── Explore ───────────────────────────────────────────── */
+.explore-toolbar{
+  display:flex;gap:10px;flex-wrap:wrap;
+  background:var(--s1);border:1px solid var(--line);
+  border-radius:var(--r);padding:14px;margin-bottom:14px;
+  align-items:center;
+}
+.explore-toolbar input{flex:1;min-width:180px}
+.explore-toolbar select{width:150px}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.fc{
+  padding:5px 12px;border-radius:999px;
+  font-size:.78rem;font-weight:600;
+  border:1px solid var(--line2);
+  background:var(--s2);color:var(--muted);
+  cursor:pointer;transition:.15s;font-family:'Syne',sans-serif;
+}
+.fc:hover{border-color:#555;color:var(--text)}
+.fc.active-fc{
+  background:rgba(224,49,49,.15);
+  border-color:rgba(224,49,49,.5);
+  color:#ff8080;
+}
+
+/* ── Student Cards ─────────────────────────────────────── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.student-card{
+  background:var(--s1);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;cursor:pointer;
+  transition:.22s;position:relative;
+}
+.student-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(224,49,49,.4);
+  box-shadow:var(--glow);
+}
+.sc-photo{height:120px;background:#0d0d11;display:grid;place-items:center;overflow:hidden;border-bottom:1px solid var(--line)}
+.sc-photo img{width:100%;height:100%;object-fit:cover}
+.sc-photo .no-photo{color:var(--dim);font-size:.75rem;display:flex;flex-direction:column;align-items:center;gap:4px}
+.sc-body{padding:10px}
+.sc-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-class{font-size:.75rem;color:var(--muted)}
+.sc-badge{
+  position:absolute;top:8px;right:8px;
+  padding:2px 8px;border-radius:999px;
+  font-size:.65rem;font-weight:700;
+  background:rgba(224,49,49,.2);color:#ff8080;
+  border:1px solid rgba(224,49,49,.3);
+  font-family:'Syne',sans-serif;
+}
+.empty-state{
+  grid-column:1/-1;
+  padding:40px;text-align:center;
+  color:var(--dim);
+}
+.empty-state svg{margin-bottom:10px;opacity:.3}
+.count-tag{font-size:.78rem;color:var(--muted);padding:4px 0}
+
+/* ── Modal ─────────────────────────────────────────────── */
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.78);
+  display:none;align-items:center;justify-content:center;
+  padding:14px;z-index:200;
+  backdrop-filter:blur(4px);
+}
+.modal.show{display:flex}
+.modal-box{
+  width:min(820px,100%);
+  max-height:92vh;overflow-y:auto;
+  background:var(--s1);
+  border:1px solid var(--line2);
+  border-radius:16px;padding:20px;
+  animation:fadeIn .2s ease;
+}
+.modal-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:16px;padding-bottom:14px;
+  border-bottom:1px solid var(--line);
+}
+.modal-head h3{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kv{
+  padding:10px 12px;border:1px solid var(--line);
+  border-radius:10px;background:#0c0c10;
+}
+.kv b{display:block;font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.kv span{font-size:.88rem}
+
+/* ── Auth modal ────────────────────────────────────────── */
+.auth-box{width:min(400px,100%)}
+
+/* ── Bottom nav (mobile) ───────────────────────────────── */
+.bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(10,10,14,.96);
+  border-top:1px solid var(--line);
+  backdrop-filter:blur(12px);
+  padding:6px 0 env(safe-area-inset-bottom,6px);
+  z-index:50;
+}
+.bnav{display:flex;justify-content:space-around}
+.bn-item{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 12px;cursor:pointer;
+  border:none;background:none;color:var(--muted);
+  font-size:.62rem;font-weight:600;font-family:'Syne',sans-serif;
+  letter-spacing:.03em;transition:.15s;min-width:60px;
+  text-transform:uppercase;
+}
+.bn-item svg{transition:.15s}
+.bn-item.active{color:#ff8080}
+.bn-item.active svg{filter:drop-shadow(0 0 4px rgba(255,100,100,.5))}
+
+/* ── Sidebar overlay (mobile) ──────────────────────────── */
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:45;backdrop-filter:blur(2px);
+}
+.overlay.show{display:block}
+
+/* ── Footer ─────────────────────────────────────────────── */
+.footer{
+  padding:16px 20px;
+  border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:10px;
+}
+.footer p{font-size:.77rem;color:var(--dim)}
+.footer a{color:var(--muted);text-decoration:none}
+.footer a:hover{color:var(--text)}
+
+/* ── Divider ───────────────────────────────────────────── */
+hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
+
+/* ── Toast ─────────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:var(--s3);border:1px solid var(--line2);
+  border-radius:10px;padding:10px 18px;
+  font-size:.85rem;white-space:nowrap;
+  z-index:500;opacity:0;transition:.3s;pointer-events:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+#toast.show{opacity:1}
+#toast.ok{border-color:rgba(34,197,94,.4);color:#6ee7b7}
+#toast.err{border-color:rgba(224,49,49,.4);color:#ff8080}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media(max-width:900px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .g4{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr}
+  .classes-grid{grid-template-columns:repeat(5,1fr)}
+  .info-row{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .hamburger{display:flex}
+  .bottom-nav{display:block}
+  .content{padding:14px;padding-bottom:80px}
+  .stats{grid-template-columns:1fr 1fr}
+  .classes-grid{grid-template-columns:repeat(5,1fr)}
+  .g2{grid-template-columns:1fr}
+  .g3{grid-template-columns:1fr}
+  .g4{grid-template-columns:1fr}
+  .topbar{padding:0 12px}
+  .footer{flex-direction:column;text-align:center;gap:6px}
+}
+@media(max-width:420px){
+  .stats{grid-template-columns:1fr 1fr}
+  .classes-grid{grid-template-columns:repeat(5,1fr)}
+  .cards-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">G</div>
+      <div class="brand-text">
+        <strong>Grade 10 DB</strong>
+        <span>Students Database</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-sec="home" onclick="showSection('home')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-sec="add" onclick="showSection('add')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Add Student
+      </button>
+      <button class="nav-item" data-sec="explore" onclick="showSection('explore')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Browse Students
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div id="roleBadge" class="role-badge guest">● GUEST</div>
+        <div style="font-size:.78rem;color:var(--muted)" id="userEmail">Not logged in</div>
+        <div class="sidebar-footer-btns">
+          <button class="btn btn-sm" onclick="openAuth()" style="flex:1">Login</button>
+          <button class="btn btn-sm btn-outline-red hidden" id="logoutBtn" onclick="logoutUser()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Overlay (mobile) ── -->
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Dashboard <span>Home</span></div>
+      <button class="btn btn-sm" onclick="openAuth()" id="topLoginBtn">Login</button>
+      <button class="btn btn-sm btn-red hidden" id="topLogoutBtn" onclick="logoutUser()">Logout</button>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ═══ HOME ═══ -->
+      <section id="home" class="section active">
+        <div class="page-head">
+          <h2>Dashboard</h2>
+          <p>Grade 10 Students Database — overview & quick access</p>
+        </div>
+
+        <div class="stats" id="statsRow">
+          <div class="stat">
+            <div class="stat-icon">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="stat-val" id="totalCount">—</div>
+            <div class="stat-label">Total Students</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            </div>
+            <div class="stat-val">10</div>
+            <div class="stat-label">Classes (A–J)</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="stat-val" id="maleCount">—</div>
+            <div class="stat-label">Male Students</div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="stat-val" id="femaleCount">—</div>
+            <div class="stat-label">Female Students</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px">
+          <div class="section-label">Classes Overview</div>
+        </div>
+        <div class="classes-grid" id="classesOverview">
+          <!-- filled by JS -->
+        </div>
+
+        <div class="info-row">
+          <div class="info-panel">
+            <h4>Quick Actions</h4>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn" onclick="showSection('add')" style="justify-content:flex-start">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Add New Student
+              </button>
+              <button class="btn" onclick="showSection('explore')" style="justify-content:flex-start">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Browse All Students
+              </button>
+              <button class="btn" onclick="openAuth()" style="justify-content:flex-start" id="loginQuick">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                Admin Login
+              </button>
+            </div>
+          </div>
+          <div class="info-panel">
+            <h4>About This System</h4>
+            <p style="font-size:.83rem;color:var(--muted);line-height:1.6">
+              Grade 10 Students Database allows admins to add and manage student records.
+              Explore students by class A through J with powerful search and filters.
+              Admin login required for adding or removing student records.
+            </p>
+            <div style="margin-top:12px;font-size:.77rem;color:var(--dim)">
+              Built by <span style="color:var(--muted)">DScreations©</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ ADD STUDENT ═══ -->
+      <section id="add" class="section">
+        <div class="page-head">
+          <h2>Add Student</h2>
+          <p>Fill in the student details below. Fields marked * are required.</p>
+        </div>
+
+        <form id="addForm">
+          <!-- Basic Info -->
+          <div class="card-panel">
+            <div class="section-label">Basic Information</div>
+            <div class="form-grid g4">
+              <div class="field"><label>First Name *</label><input id="first_name" required placeholder="First name"></div>
+              <div class="field"><label>Last Name *</label><input id="last_name" required placeholder="Last name"></div>
+              <div class="field">
+                <label>Gender</label>
+                <select id="gender">
+                  <option value="">Select...</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="field"><label>Date of Birth</label><input id="dob" type="date"></div>
+              <div class="field"><label>Age</label><input id="age" type="number" placeholder="Age" min="1" max="25"></div>
+              <div class="field">
+                <label>Class *</label>
+                <select id="class_name" required>
+                  <option value="">Select class...</option>
+                  <option value="10A">10A</option>
+                  <option value="10B">10B</option>
+                  <option value="10C">10C</option>
+                  <option value="10D">10D</option>
+                  <option value="10E">10E</option>
+                  <option value="10F">10F</option>
+                  <option value="10G">10G</option>
+                  <option value="10H">10H</option>
+                  <option value="10I">10I</option>
+                  <option value="10J">10J</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Status</label>
+                <select id="status">
+                  <option value="">Select...</option>
+                  <option>Active</option>
+                  <option>Inactive</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Grade *</label>
+                <select id="grade" required>
+                  <option value="10">10</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact -->
+          <div class="card-panel">
+            <div class="section-label">Contact Details</div>
+            <div class="form-grid g3">
+              <div class="field"><label>Phone</label><input id="phone" placeholder="+94 xx xxx xxxx"></div>
+              <div class="field"><label>Email</label><input id="email" type="email" placeholder="email@example.com"></div>
+              <div class="field">
+                <label>Transportation</label>
+                <select id="transport_method">
+                  <option value="">Select...</option>
+                  <option>Public Transport – Bus (SLTB)</option>
+                  <option>Public Transport – Bus (Private)</option>
+                  <option>Public Transport – Train</option>
+                  <option>Public Transport – Van</option>
+                  <option>Private Transport</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="field"><label>Address Line 1</label><input id="address_line1" placeholder="Street / Road"></div>
+              <div class="field"><label>Address Line 2</label><input id="address_line2" placeholder="City / Town"></div>
+              <div class="field"><label>Address Line 3</label><input id="address_line3" placeholder="District / Province"></div>
+            </div>
+          </div>
+
+          <!-- Father -->
+          <div class="card-panel">
+            <div class="section-label">Father's Information</div>
+            <div class="form-grid g3">
+              <div class="field"><label>Father's Name</label><input id="father_name" placeholder="Full name"></div>
+              <div class="field"><label>Father's NIC / ID</label><input id="father_id" placeholder="ID number"></div>
+              <div class="field"><label>Father's Phone</label><input id="father_phone" placeholder="+94..."></div>
+              <div class="field"><label>Profession / Designation</label><input id="father_profession" placeholder="Profession"></div>
+              <div class="field"><label>Official Address</label><input id="father_official_address" placeholder="Work address"></div>
+              <div class="field"><label>Office Phone</label><input id="father_office_phone" placeholder="+94..."></div>
+            </div>
+          </div>
+
+          <!-- Mother -->
+          <div class="card-panel">
+            <div class="section-label">Mother's Information</div>
+            <div class="form-grid g3">
+              <div class="field"><label>Mother's Name</label><input id="mother_name" placeholder="Full name"></div>
+              <div class="field"><label>Mother's NIC / ID</label><input id="mother_id" placeholder="ID number"></div>
+              <div class="field"><label>Mother's Phone</label><input id="mother_phone" placeholder="+94..."></div>
+              <div class="field"><label>Profession / Designation</label><input id="mother_profession" placeholder="Profession"></div>
+              <div class="field"><label>Official Address</label><input id="mother_official_address" placeholder="Work address"></div>
+              <div class="field"><label>Office Phone</label><input id="mother_office_phone" placeholder="+94..."></div>
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="card-panel">
+            <div class="section-label">Documents</div>
+            <div class="form-grid g2">
+              <div class="field"><label>ID Photo</label><input id="id_photo" type="file" accept="image/*"></div>
+              <div class="field"><label>Birth Certificate</label><input id="birth_certificate" type="file" accept=".pdf,image/*"></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-red" type="submit">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Add Student
+              </button>
+              <button class="btn" type="reset" onclick="">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.13"/></svg>
+                Reset Form
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- ═══ EXPLORE ═══ -->
+      <section id="explore" class="section">
+        <div class="page-head">
+          <h2>Browse Students</h2>
+          <p>Search and filter by class — click any card to view full details.</p>
+        </div>
+
+        <div class="explore-toolbar">
+          <input id="search" placeholder="🔍  Search by name, phone…" oninput="loadCards()">
+          <select id="classFilter" onchange="loadCards()" style="width:140px">
+            <option value="">All Classes</option>
+            <option value="10A">10A</option>
+            <option value="10B">10B</option>
+            <option value="10C">10C</option>
+            <option value="10D">10D</option>
+            <option value="10E">10E</option>
+            <option value="10F">10F</option>
+            <option value="10G">10G</option>
+            <option value="10H">10H</option>
+            <option value="10I">10I</option>
+            <option value="10J">10J</option>
+          </select>
+          <button class="btn" onclick="loadCards()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.13"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Quick class filter chips -->
+        <div class="filter-chips">
+          <span class="fc active-fc" data-class="" onclick="setClassFilter(this,'')">All</span>
+          <span class="fc" data-class="10A" onclick="setClassFilter(this,'10A')">10A</span>
+          <span class="fc" data-class="10B" onclick="setClassFilter(this,'10B')">10B</span>
+          <span class="fc" data-class="10C" onclick="setClassFilter(this,'10C')">10C</span>
+          <span class="fc" data-class="10D" onclick="setClassFilter(this,'10D')">10D</span>
+          <span class="fc" data-class="10E" onclick="setClassFilter(this,'10E')">10E</span>
+          <span class="fc" data-class="10F" onclick="setClassFilter(this,'10F')">10F</span>
+          <span class="fc" data-class="10G" onclick="setClassFilter(this,'10G')">10G</span>
+          <span class="fc" data-class="10H" onclick="setClassFilter(this,'10H')">10H</span>
+          <span class="fc" data-class="10I" onclick="setClassFilter(this,'10I')">10I</span>
+          <span class="fc" data-class="10J" onclick="setClassFilter(this,'10J')">10J</span>
+        </div>
+
+        <div class="count-tag" id="resultCount"></div>
+        <div class="cards-grid" id="cards"></div>
+      </section>
+
+    </div><!-- /content -->
+
+    <footer class="footer">
+      <p>© 2025 DScreations · Grade 10 Students Database</p>
+      <p>Contact: <a href="tel:+94xxxxxxx">+94 xx xxx xxxx</a></p>
+    </footer>
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ── Bottom nav (mobile) ── -->
+<div class="bottom-nav">
+  <div class="bnav">
+    <button class="bn-item active" data-sec="home" onclick="showSection('home')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Home
+    </button>
+    <button class="bn-item" data-sec="add" onclick="showSection('add')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Add
+    </button>
+    <button class="bn-item" data-sec="explore" onclick="showSection('explore')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Browse
+    </button>
+    <button class="bn-item" onclick="openAuth()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Login
+    </button>
+  </div>
+</div>
+
+<!-- ── Auth modal ── -->
+<div id="authModal" class="modal">
+  <div class="modal-box auth-box">
+    <div class="modal-head">
+      <h3>Admin Login</h3>
+      <button class="btn btn-sm" onclick="closeAuth()">✕ Close</button>
+    </div>
+    <div class="form-grid g2" style="gap:10px">
+      <div class="field"><label>Email</label><input id="login_email" type="email" placeholder="admin@email.com"></div>
+      <div class="field"><label>Password</label><input id="login_password" type="password" placeholder="••••••••"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-red" onclick="loginUser()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Login
+      </button>
+      <button class="btn" onclick="closeAuth()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Details modal ── -->
+<div id="detailsModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Student Details</h3>
+      <button class="btn btn-sm" onclick="closeDetails()">✕ Close</button>
+    </div>
+    <div id="detailsBody"></div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+<script>
+/* ── Supabase ── */
+const SUPABASE_URL = "https://jjxsjggnzvzyupjhnxev.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHNqZ2duenZ6eXVwamhueGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODcyMDIsImV4cCI6MjA4ODY2MzIwMn0.fyNmsSolIEksQpF8XxF5t7Urezwnpgb0vbTsWxqTdyI";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let currentRole = "guest";
+
+/* ── Helpers ── */
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
+function val(id){ return (document.getElementById(id)?.value || "").trim(); }
+
+function toast(msg, type="ok"){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "show " + type;
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.className = "", 3000);
+}
+
+/* ── Navigation ── */
+function showSection(name){
+  const titles = { home:"Dashboard", add:"Add Student", explore:"Browse Students" };
+  const subs   = { home:"Home", add:"New Record", explore:"All Classes" };
+
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById(name).classList.add("active");
+
+  // Sidebar nav
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  document.querySelector(".nav-item[data-sec='" + name + "']")?.classList.add("active");
+
+  // Bottom nav
+  document.querySelectorAll(".bn-item").forEach(b => b.classList.remove("active"));
+  document.querySelector(".bn-item[data-sec='" + name + "']")?.classList.add("active");
+
+  // Topbar title
+  const tt = document.getElementById("topbarTitle");
+  if(tt) tt.innerHTML = titles[name] + " <span>" + subs[name] + "</span>";
+
+  if(name === "explore") loadCards();
+  closeSidebar();
+}
+
+/* ── Sidebar toggle (mobile) ── */
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("overlay").classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+/* ── Auth modals ── */
+function openAuth(){ document.getElementById("authModal").classList.add("show"); }
+function closeAuth(){ document.getElementById("authModal").classList.remove("show"); }
+function closeDetails(){ document.getElementById("detailsModal").classList.remove("show"); }
+
+/* ── Auth state ── */
+async function refreshAuth(){
+  const { data:{ user } } = await sb.auth.getUser();
+  currentUser = user || null;
+  currentRole = "guest";
+
+  if(currentUser){
+    const { data, error } = await sb.from("profiles").select("role").eq("id", currentUser.id).single();
+    currentRole = error ? "viewer" : (data?.role || "viewer");
+  }
+
+  const badge = document.getElementById("roleBadge");
+  badge.textContent = "● " + currentRole.toUpperCase();
+  badge.className = "role-badge" + (currentRole==="guest" ? " guest" : "");
+
+  const emailEl = document.getElementById("userEmail");
+  if(emailEl) emailEl.textContent = currentUser ? currentUser.email : "Not logged in";
+
+  const isLoggedIn = !!currentUser;
+  document.getElementById("logoutBtn").classList.toggle("hidden", !isLoggedIn);
+  document.getElementById("topLogoutBtn").classList.toggle("hidden", !isLoggedIn);
+  document.getElementById("topLoginBtn").classList.toggle("hidden", isLoggedIn);
+  document.getElementById("loginQuick")?.classList.toggle("hidden", isLoggedIn);
+
+  loadDashboard();
+}
+
+async function loginUser(){
+  const email = val("login_email");
+  const password = document.getElementById("login_password").value;
+  if(!email || !password){ toast("Enter email and password","err"); return; }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ toast("Login failed: " + error.message,"err"); return; }
+  await refreshAuth();
+  closeAuth();
+  toast("Logged in successfully ✓");
+}
+
+async function logoutUser(){
+  await sb.auth.signOut();
+  await refreshAuth();
+  showSection("home");
+  toast("Logged out");
+}
+
+function requireAdmin(action){
+  if(currentRole !== "admin"){
+    toast(action + " requires admin login","err");
+    openAuth();
+    return false;
+  }
+  return true;
+}
+
+/* ── Dashboard ── */
+async function loadDashboard(){
+  // Total count
+  const { count:total } = await sb.from("students").select("*", { count:"exact", head:true });
+  document.getElementById("totalCount").textContent = total ?? 0;
+
+  // Gender counts
+  const { data:gData } = await sb.from("students").select("gender");
+  const males   = gData ? gData.filter(r => (r.gender||"").toLowerCase().startsWith("m")).length : 0;
+  const females = gData ? gData.filter(r => (r.gender||"").toLowerCase().startsWith("f")).length : 0;
+  document.getElementById("maleCount").textContent = males;
+  document.getElementById("femaleCount").textContent = females;
+
+  // Class counts
+  const { data:cData } = await sb.from("students").select("class_name");
+  const classes = ["10A","10B","10C","10D","10E","10F","10G","10H","10I","10J"];
+  const counts = {};
+  classes.forEach(c => counts[c] = 0);
+  if(cData) cData.forEach(r => { if(r.class_name && counts[r.class_name] !== undefined) counts[r.class_name]++; });
+
+  const cGrid = document.getElementById("classesOverview");
+  cGrid.innerHTML = classes.map(c =>
+    `<div class="class-chip" onclick="goClass('${c}')">
+      <div class="cc-label">${c}</div>
+      <div class="cc-count">${counts[c]} students</div>
+    </div>`
+  ).join("");
+}
+
+function goClass(cls){
+  document.getElementById("classFilter").value = cls;
+  document.querySelectorAll(".fc").forEach(f => {
+    f.classList.toggle("active-fc", f.dataset.class === cls);
+  });
+  showSection("explore");
+}
+
+/* ── Explore ── */
+function setClassFilter(el, cls){
+  document.querySelectorAll(".fc").forEach(f => f.classList.remove("active-fc"));
+  el.classList.add("active-fc");
+  document.getElementById("classFilter").value = cls;
+  loadCards();
+}
+
+async function loadCards(){
+  const q   = val("search");
+  const cls = val("classFilter");
+  const box = document.getElementById("cards");
+  box.innerHTML = `<div class="empty-state"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/></svg><div>Loading…</div></div>`;
+
+  let query = sb.from("students")
+    .select("student_id,first_name,last_name,grade,class_name,phone,id_photo_path")
+    .order("student_id", { ascending:false });
+
+  if(q) query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`);
+  if(cls) query = query.eq("class_name", cls);
+
+  const { data, error } = await query;
+  box.innerHTML = "";
+
+  if(error){ box.innerHTML = `<div class="empty-state" style="color:#ff8080">Failed to load: ${esc(error.message)}</div>`; return; }
+  if(!data?.length){ box.innerHTML = `<div class="empty-state"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div>No students found</div></div>`; }
+
+  document.getElementById("resultCount").textContent = data?.length ? `${data.length} student${data.length!==1?"s":""} found` : "";
+
+  (data||[]).forEach(s => {
+    const card = document.createElement("div");
+    card.className = "student-card";
+    const photoHtml = s.id_photo_path
+      ? `<img src="${idPhotoUrl(s.id_photo_path)}" loading="lazy">`
+      : `<div class="no-photo"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>No photo</div>`;
+    card.innerHTML =
+      `<div class="sc-photo">${photoHtml}</div>
+       <div class="sc-body">
+         <div class="sc-name">${esc(s.first_name)} ${esc(s.last_name)}</div>
+         <div class="sc-class">${esc(s.class_name||"—")}</div>
+       </div>
+       <span class="sc-badge">${esc(s.class_name||"?")}</span>`;
+    card.onclick = () => openDetails(s.student_id);
+    box.appendChild(card);
+  });
+}
+
+/* ── Student Details ── */
+function idPhotoUrl(path){
+  if(!path) return "";
+  return sb.storage.from("id-photos").getPublicUrl(path).data.publicUrl;
+}
+
+async function openDetails(id){
+  const { data, error } = await sb.from("students").select("*").eq("student_id", id).single();
+  if(error){ toast("Cannot open: " + error.message,"err"); return; }
+
+  const addr = [data.address_line1,data.address_line2,data.address_line3].filter(Boolean).join(", ") || "—";
+  const photoHtml = data.id_photo_path
+    ? `<img src="${idPhotoUrl(data.id_photo_path)}" style="width:110px;height:130px;object-fit:cover;border-radius:10px;border:1px solid var(--line2)">`
+    : `<div style="width:110px;height:130px;border-radius:10px;border:1px solid var(--line);background:#0e0e14;display:grid;place-items:center;color:var(--dim);font-size:.75rem;text-align:center">No Photo</div>`;
+
+  const birthBtn = data.birth_certificate_path
+    ? `<button class="btn btn-sm" onclick="downloadBirth('${esc(data.birth_certificate_path)}')">
+         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+         Birth Certificate
+       </button>`
+    : `<span style="font-size:.78rem;color:var(--dim)">No birth certificate</span>`;
+
+  const delBtn = currentRole === "admin"
+    ? `<button class="btn btn-sm btn-outline-red" onclick="removeById(${Number(data.student_id)})">
+         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+         Delete Student
+       </button>`
+    : "";
+
+  document.getElementById("detailsBody").innerHTML =
+    `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-start">
+       ${photoHtml}
+       <div>
+         <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800">${esc((data.first_name||"")+" "+(data.last_name||""))}</div>
+         <div style="color:var(--muted);font-size:.85rem;margin-top:3px">Grade ${esc(data.grade||"10")} · Class ${esc(data.class_name||"—")}</div>
+         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${birthBtn}${delBtn}</div>
+       </div>
+     </div>
+     <div class="detail-grid">
+       <div class="kv"><b>Phone</b><span>${esc(data.phone||"—")}</span></div>
+       <div class="kv"><b>Email</b><span>${esc(data.email||"—")}</span></div>
+       <div class="kv"><b>Date of Birth</b><span>${esc(data.date_of_birth||"—")}</span></div>
+       <div class="kv"><b>Age</b><span>${esc(data.age||"—")}</span></div>
+       <div class="kv"><b>Gender</b><span>${esc(data.gender||"—")}</span></div>
+       <div class="kv"><b>Status</b><span>${esc(data.status||"—")}</span></div>
+       <div class="kv"><b>Transport</b><span>${esc(data.transport_method||"—")}</span></div>
+       <div class="kv"><b>Address</b><span>${esc(addr)}</span></div>
+       <div class="kv"><b>Father</b><span>${esc(data.father_name||"—")} · ${esc(data.father_phone||"—")}</span></div>
+       <div class="kv"><b>Father Profession</b><span>${esc(data.father_profession||"—")}</span></div>
+       <div class="kv"><b>Mother</b><span>${esc(data.mother_name||"—")} · ${esc(data.mother_phone||"—")}</span></div>
+       <div class="kv"><b>Mother Profession</b><span>${esc(data.mother_profession||"—")}</span></div>
+     </div>`;
+
+  document.getElementById("detailsModal").classList.add("show");
+}
+
+async function downloadBirth(path){
+  const { data, error } = await sb.storage.from("birth-certificates").createSignedUrl(path, 60);
+  if(error){ toast("Download failed: " + error.message,"err"); return; }
+  window.open(data.signedUrl, "_blank");
+}
+
+async function removeById(forcedId){
+  if(!requireAdmin("Delete student")) return;
+  const id = Number(forcedId);
+  if(!id){ toast("Invalid ID","err"); return; }
+  if(!confirm("Permanently delete this student's record?")) return;
+  const { error } = await sb.from("students").delete().eq("student_id", id);
+  if(error){ toast("Delete failed: " + error.message,"err"); return; }
+  closeDetails();
+  loadCards();
+  loadDashboard();
+  toast("Student deleted ✓");
+}
+
+/* ── Upload helper ── */
+async function uploadIfAny(bucket, inputId, folder){
+  const input = document.getElementById(inputId);
+  if(!input?.files?.[0]) return null;
+  const file = input.files[0];
+  const ext  = (file.name.split(".").pop() || "bin").toLowerCase();
+  const path = `${folder}/${Date.now()}_${Math.floor(Math.random()*1e5)}.${ext}`;
+  const { error } = await sb.storage.from(bucket).upload(path, file);
+  if(error) throw error;
+  return path;
+}
+
+/* ── Add student submit ── */
+document.getElementById("addForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if(!requireAdmin("Add student")) return;
+  if(!confirm("Confirm adding this student?")) return;
+
+  const btn = e.target.querySelector("button[type=submit]");
+  btn.disabled = true; btn.textContent = "Adding…";
+
+  try {
+    const idPhotoPath = await uploadIfAny("id-photos", "id_photo", "students/id-photo");
+    const birthPath   = await uploadIfAny("birth-certificates", "birth_certificate", "students/birth");
+
+    const payload = {
+      first_name: val("first_name"), last_name: val("last_name"),
+      gender: val("gender") || null,
+      date_of_birth: document.getElementById("dob").value || null,
+      age: val("age") ? Number(val("age")) : null,
+      grade: val("grade") || "10",
+      class_name: val("class_name"),
+      phone: val("phone") || null,
+      email: val("email") || null,
+      status: val("status") || null,
+      transport_method: val("transport_method") || null,
+      address_line1: val("address_line1") || null,
+      address_line2: val("address_line2") || null,
+      address_line3: val("address_line3") || null,
+      father_name: val("father_name") || null, father_id: val("father_id") || null,
+      father_phone: val("father_phone") || null, father_profession: val("father_profession") || null,
+      father_official_address: val("father_official_address") || null, father_office_phone: val("father_office_phone") || null,
+      mother_name: val("mother_name") || null, mother_id: val("mother_id") || null,
+      mother_phone: val("mother_phone") || null, mother_profession: val("mother_profession") || null,
+      mother_official_address: val("mother_official_address") || null, mother_office_phone: val("mother_office_phone") || null,
+      id_photo_path: idPhotoPath, birth_certificate_path: birthPath
+    };
+
+    const { error } = await sb.from("students").insert([payload]);
+    if(error){ toast("Insert failed: " + error.message,"err"); return; }
+    toast("Student added ✓");
+    e.target.reset();
+    loadDashboard();
+    setTimeout(() => showSection("explore"), 800);
+  } catch(err){
+    toast("Error: " + err.message,"err");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Add Student`;
+  }
+});
+
+/* ── Init ── */
+sb.auth.onAuthStateChange(async () => { await refreshAuth(); });
+refreshAuth();
+showSection("home");
+</script>
+</body>
+</html>
