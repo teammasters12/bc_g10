@@ -1094,7 +1094,7 @@ async function loadCards(){
     .select("student_id,full_name,grade,class_name,phone,id_photo_path")
     .order("student_id", { ascending:false });
 
-  if(q) query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`);
+  if(q) query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`);
   if(cls) query = query.eq("class_name", cls);
 
   const { data, error } = await query;
@@ -1156,7 +1156,7 @@ async function openDetails(id){
     `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-start">
        ${photoHtml}
        <div>
-         <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800">${esc((data.first_name||"")+" "+(data.last_name||""))}</div>
+         <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800">${esc((data.full_name||""))}</div>
          <div style="color:var(--muted);font-size:.85rem;margin-top:3px">Grade ${esc(data.grade||"10")} · Class ${esc(data.class_name||"—")}</div>
          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${birthBtn}${delBtn}</div>
        </div>
