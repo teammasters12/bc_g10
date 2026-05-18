@@ -226,7 +226,12 @@ body{
 .stat-label{font-size:.77rem;color:var(--muted);margin-top:4px;font-weight:500}
 
 /* ── Classes overview ──────────────────────────────────── */
-.classes-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+.classes-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:12px;
+  margin:20px 0;
+}
 .class-chip{
   background:var(--s1);border:1px solid var(--line);
   border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;transition:.18s;
@@ -550,10 +555,12 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <div class="stat-val" id="maleCount">—</div>
-            <div class="stat-label">Male Students</div>
+           <div class="stat-label">Male Students</div>
           </div>
 
-        <div style="margin-bottom:10px">
+          </div> <!-- CLOSE stats -->
+
+          <div style="margin-bottom:10px">
           <div class="section-label">Classes Overview</div>
         </div>
         <div class="classes-grid" id="classesOverview">
