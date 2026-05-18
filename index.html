@@ -910,27 +910,51 @@ function closeDetails(){ document.getElementById("detailsModal").classList.remov
 
 /* ── Auth state ── */
 async function refreshAuth(){
-  const { data:{ user } } = await sb.auth.getUser();
-  currentUser = user || null;
+
+  const { data, error } = await sb.auth.getSession();
+
+  if(error){
+    console.log(error);
+    return;
+  }
+
+  currentUser = data?.session?.user || null;
   currentRole = "guest";
 
   if(currentUser){
-    const { data, error } = await sb.from("profiles").select("role").eq("id", currentUser.id).single();
-    currentRole = error ? "viewer" : (data?.role || "viewer");
+
+    const { data:profile } = await sb
+      .from("profiles")
+      .select("role")
+      .eq("id", currentUser.id)
+      .single();
+
+    currentRole = profile?.role || "admin";
   }
 
-  const badge = document.getElementById("roleBadge");
-  badge.textContent = "● " + currentRole.toUpperCase();
-  badge.className = "role-badge" + (currentRole==="guest" ? " guest" : "");
+  console.log("USER:", currentUser);
+  console.log("ROLE:", currentRole);
 
-  const emailEl = document.getElementById("userEmail");
-  if(emailEl) emailEl.textContent = currentUser ? currentUser.email : "Not logged in";
+  const badge = document.getElementById("roleBadge");
+
+  badge.textContent = "● " + currentRole.toUpperCase();
+
+  badge.className =
+    "role-badge" + (currentRole === "guest" ? " guest" : "");
+
+  document.getElementById("userEmail").textContent =
+    currentUser ? currentUser.email : "Not logged in";
 
   const isLoggedIn = !!currentUser;
-  document.getElementById("logoutBtn").classList.toggle("hidden", !isLoggedIn);
-  document.getElementById("topLogoutBtn").classList.toggle("hidden", !isLoggedIn);
-  document.getElementById("topLoginBtn").classList.toggle("hidden", isLoggedIn);
-  document.getElementById("loginQuick")?.classList.toggle("hidden", isLoggedIn);
+
+  document.getElementById("logoutBtn")
+    .classList.toggle("hidden", !isLoggedIn);
+
+  document.getElementById("topLogoutBtn")
+    .classList.toggle("hidden", !isLoggedIn);
+
+  document.getElementById("topLoginBtn")
+    .classList.toggle("hidden", isLoggedIn);
 
   loadDashboard();
 }
@@ -1184,8 +1208,16 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
 });
 
 /* ── Init ── */
-sb.auth.onAuthStateChange(async () => { await refreshAuth(); });
-refreshAuth();
+sb.auth.onAuthStateChange((event, session) => {
+
+  console.log(event, session);
+
+  if(session){
+    currentUser = session.user;
+  }
+
+  refreshAuth();
+});
 showSection("home");
 </script>
 </body>
