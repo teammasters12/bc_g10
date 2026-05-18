@@ -618,8 +618,10 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
           <div class="card-panel">
             <div class="section-label">Basic Information</div>
             <div class="form-grid g4">
-              <div class="field"><label>First Name *</label><input id="first_name" required placeholder="First name"></div>
-              <div class="field"><label>Last Name *</label><input id="last_name" required placeholder="Last name"></div>
+              <div class="field">
+              <label>Full Name *</label>
+              <input id="full_name" required placeholder="Student full name">
+              </div>
               <div class="field">
                 <label>Gender</label>
                 <select id="gender">
@@ -687,6 +689,59 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
               <div class="field"><label>Address Line 3</label><input id="address_line3" placeholder="District / Province"></div>
             </div>
           </div>
+          <!-- Subject Gathering -->
+          <div class="card-panel">
+            <div class="section-label">Subject Gathering</div>
+          
+            <div class="form-grid g3">
+          
+              <div class="field">
+                <label>1st Basket Subject</label>
+                <select id="basket1">
+                  <option value="">Select...</option>
+                  <option>Commerce</option>
+                  <option>Geography</option>
+                  <option>Civics</option>
+                  <option>Tamil</option>
+                  <option>France</option>
+                  <option>Jerman</option>
+                  <option>Hindi</option>
+                </select>
+              </div>
+          
+              <div class="field">
+                <label>2nd Basket Subject</label>
+                <select id="basket2">
+                  <option value="">Select...</option>
+                  <option>Western Music</option>
+                  <option>Eastern Music</option>
+                  <option>Art</option>
+                  <option>Dancing</option>
+                  <option>Drama</option>
+                  <option>English Literature</option>
+                  <option>Sinhala Literature</option>
+                </select>
+              </div>
+          
+              <div class="field">
+                <label>3rd Basket Subject</label>
+                <select id="basket3">
+                  <option value="">Select...</option>
+                  <option>ICT</option>
+                  <option>Agriculture</option>
+                  <option>Art and Crafts</option>
+                  <option>Home Science</option>
+                  <option>Health</option>
+                  <option>Media</option>
+                  <option>Construction</option>
+                  <option>Mechanics</option>
+                  <option>Electronics</option>
+                  <option>Japanese</option>
+                </select>
+              </div>
+
+          </div>
+        </div>
 
           <!-- Father -->
           <div class="card-panel">
@@ -697,7 +752,6 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
               <div class="field"><label>Father's Phone</label><input id="father_phone" placeholder="+94..."></div>
               <div class="field"><label>Profession / Designation</label><input id="father_profession" placeholder="Profession"></div>
               <div class="field"><label>Official Address</label><input id="father_official_address" placeholder="Work address"></div>
-              <div class="field"><label>Office Phone</label><input id="father_office_phone" placeholder="+94..."></div>
             </div>
           </div>
 
@@ -710,7 +764,6 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
               <div class="field"><label>Mother's Phone</label><input id="mother_phone" placeholder="+94..."></div>
               <div class="field"><label>Profession / Designation</label><input id="mother_profession" placeholder="Profession"></div>
               <div class="field"><label>Official Address</label><input id="mother_official_address" placeholder="Work address"></div>
-              <div class="field"><label>Office Phone</label><input id="mother_office_phone" placeholder="+94..."></div>
             </div>
           </div>
 
@@ -1038,7 +1091,7 @@ async function loadCards(){
   box.innerHTML = `<div class="empty-state"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/></svg><div>Loading…</div></div>`;
 
   let query = sb.from("students")
-    .select("student_id,first_name,last_name,grade,class_name,phone,id_photo_path")
+    .select("student_id,full_name,grade,class_name,phone,id_photo_path")
     .order("student_id", { ascending:false });
 
   if(q) query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`);
@@ -1061,7 +1114,7 @@ async function loadCards(){
     card.innerHTML =
       `<div class="sc-photo">${photoHtml}</div>
        <div class="sc-body">
-         <div class="sc-name">${esc(s.first_name)} ${esc(s.last_name)}</div>
+         <div class="sc-name">${esc(s.full_name)}</div>
          <div class="sc-class">${esc(s.class_name||"—")}</div>
        </div>
        <span class="sc-badge">${esc(s.class_name||"?")}</span>`;
@@ -1171,7 +1224,7 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
     const birthPath   = await uploadIfAny("birth-certificates", "birth_certificate", "students/birth");
 
     const payload = {
-      first_name: val("first_name"), last_name: val("last_name"),
+      full_name: val("full_name"),
       gender: val("gender") || null,
       date_of_birth: document.getElementById("dob").value || null,
       age: val("age") ? Number(val("age")) : null,
@@ -1184,12 +1237,15 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
       address_line1: val("address_line1") || null,
       address_line2: val("address_line2") || null,
       address_line3: val("address_line3") || null,
+      basket1: val("basket1") || null,
+      basket2: val("basket2") || null,
+      basket3: val("basket3") || null,
       father_name: val("father_name") || null, father_id: val("father_id") || null,
       father_phone: val("father_phone") || null, father_profession: val("father_profession") || null,
-      father_official_address: val("father_official_address") || null, father_office_phone: val("father_office_phone") || null,
+      father_official_address: val("father_official_address") || null,
       mother_name: val("mother_name") || null, mother_id: val("mother_id") || null,
       mother_phone: val("mother_phone") || null, mother_profession: val("mother_profession") || null,
-      mother_official_address: val("mother_official_address") || null, mother_office_phone: val("mother_office_phone") || null,
+      mother_official_address: val("mother_official_address") || null,
       id_photo_path: idPhotoPath, birth_certificate_path: birthPath
     };
 
