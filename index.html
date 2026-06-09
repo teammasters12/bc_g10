@@ -492,7 +492,7 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
           <p>Grade 10 student records — overview, class distribution, and quick actions.</p>
         </div>
 
-        <div class="stats" id="statsRow">
+        <div class="stats" id="statsRow" style="grid-template-columns:repeat(3,1fr)">
           <div class="stat">
             <div class="stat-icon">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -511,15 +511,8 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
             <div class="stat-icon">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
-            <div class="stat-val" id="maleCount">—</div>
-            <div class="stat-label">Male Students</div>
-          </div>
-          <div class="stat">
-            <div class="stat-icon">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="9" y1="19" x2="15" y2="19"/></svg>
-            </div>
-            <div class="stat-val" id="femaleCount">—</div>
-            <div class="stat-label">Female Students</div>
+            <div class="stat-val" id="activeCount">—</div>
+            <div class="stat-label">Active Enrolments</div>
           </div>
         </div>
 
@@ -554,7 +547,7 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
               Use the class filters to quickly navigate between the ten classes.
             </p>
             <div style="margin-top:14px;font-size:.75rem;color:var(--dim)">
-              Built by <span style="color:var(--muted)">DScreations © + TeamCDC</span>
+              Built by <span style="color:var(--muted)">DScreations © + TeamCDC ©</span>
             </div>
           </div>
         </div>
@@ -567,32 +560,34 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
           <p>Complete the form below to add a new student record. Fields marked * are required.</p>
         </div>
 
+        <div id="enrollGuestBanner" class="hidden" style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--blue3)">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>You are viewing as a guest. <button onclick="openAuth()" style="background:none;border:none;color:var(--blue3);cursor:pointer;font-weight:600;text-decoration:underline;font-size:.85rem;font-family:inherit">Sign in as admin</button> to enrol students.</span>
+        </div>
+
         <form id="addForm">
           <!-- Basic Info -->
           <div class="card-panel">
             <div class="section-label">Basic Information</div>
             <div class="form-grid g4">
               <div class="field"><label>Full Name *</label><input id="full_name" required placeholder="Student's full name"></div>
-              <div class="field">
-                <label>Gender</label>
-                <select id="gender">
-                  <option value="">Select…</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Other</option>
-                </select>
-              </div>
               <div class="field"><label>Date of Birth</label><input id="dob" type="date"></div>
               <div class="field"><label>Age</label><input id="age" type="number" placeholder="Age" min="1" max="25"></div>
               <div class="field">
                 <label>Class *</label>
-                <select id="class_name" required>
+                <select id="class_name" required onchange="populateIndex()">
                   <option value="">Select class…</option>
                   <option value="10A">10A</option><option value="10B">10B</option>
                   <option value="10C">10C</option><option value="10D">10D</option>
                   <option value="10E">10E</option><option value="10F">10F</option>
                   <option value="10G">10G</option><option value="10H">10H</option>
                   <option value="10I">10I</option><option value="10J">10J</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Index Number</label>
+                <select id="index_number" disabled>
+                  <option value="">Select class first…</option>
                 </select>
               </div>
               <div class="field">
@@ -721,7 +716,7 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
         </div>
 
         <div class="explore-toolbar">
-          <input id="search" placeholder="Search by name or phone…" oninput="loadCards()">
+          <input id="search" placeholder="Search by name, phone or index number…" oninput="loadCards()">
           <select id="classFilter" onchange="syncChipsFromSelect(); loadCards();" style="width:140px">
             <option value="">All Classes</option>
             <option value="10A">10A</option><option value="10B">10B</option>
@@ -757,7 +752,7 @@ hr.div{border:none;border-top:1px solid var(--line);margin:14px 0}
     </div><!-- /content -->
 
     <footer class="footer">
-      <p>© 2025 DScreations + © TeamCDC · Grade 10 Student Records System</p>
+      <p>© 2025 DScreations © TeamCDC · Grade 10 Student Records System</p>
       <p>Contact: <a href="tel:+94xxxxxxx">+94 xx xxx xxxx</a></p>
     </footer>
   </div><!-- /main -->
@@ -882,36 +877,46 @@ function closeDetails(){ document.getElementById("detailsModal").classList.remov
 
 /* ── Auth state ── */
 async function refreshAuth(){
-  const { data, error } = await sb.auth.getSession();
-  if(error){ console.error("Session error:", error); return; }
+  try {
+    const { data, error } = await sb.auth.getSession();
+    if(error) throw error;
 
-  currentUser = data?.session?.user || null;
-  currentRole = "guest";
+    currentUser = data?.session?.user || null;
+    currentRole = "guest";
 
-  if(currentUser){
-    const { data:profile } = await sb
-      .from("profiles").select("role").eq("id", currentUser.id).single();
-    currentRole = profile?.role || "admin";
+    if(currentUser){
+      const { data:profile } = await sb
+        .from("profiles").select("role").eq("id", currentUser.id).single();
+      currentRole = profile?.role || "admin";
+    }
+
+    const badge = document.getElementById("roleBadge");
+    badge.textContent = "● " + currentRole.toUpperCase();
+    badge.className = "role-badge" + (currentRole === "guest" ? " guest" : "");
+
+    document.getElementById("userEmail").textContent =
+      currentUser ? currentUser.email : "Not signed in";
+
+    const loggedIn = !!currentUser;
+    document.getElementById("logoutBtn").classList.toggle("hidden", !loggedIn);
+    document.getElementById("topLogoutBtn").classList.toggle("hidden", !loggedIn);
+    document.getElementById("topLoginBtn").classList.toggle("hidden", loggedIn);
+    document.getElementById("loginSideBtn").classList.toggle("hidden", loggedIn);
+
+    const lq = document.getElementById("loginQuick");
+    if(lq) lq.classList.toggle("hidden", loggedIn);
+
+    // Enrol section — show banner and disable form for guests
+    const banner = document.getElementById("enrollGuestBanner");
+    if(banner) banner.classList.toggle("hidden", loggedIn);
+    document.querySelectorAll("#addForm input, #addForm select, #addForm button[type=submit]").forEach(el => {
+      el.disabled = !loggedIn;
+    });
+
+    loadDashboard();
+  } catch(e){
+    console.error("Auth refresh error:", e);
   }
-
-  const badge = document.getElementById("roleBadge");
-  badge.textContent = "● " + currentRole.toUpperCase();
-  badge.className = "role-badge" + (currentRole === "guest" ? " guest" : "");
-
-  document.getElementById("userEmail").textContent =
-    currentUser ? currentUser.email : "Not signed in";
-
-  const loggedIn = !!currentUser;
-  document.getElementById("logoutBtn").classList.toggle("hidden", !loggedIn);
-  document.getElementById("topLogoutBtn").classList.toggle("hidden", !loggedIn);
-  document.getElementById("topLoginBtn").classList.toggle("hidden", loggedIn);
-  document.getElementById("loginSideBtn").classList.toggle("hidden", loggedIn);
-
-  // Hide "Admin Sign In" quick action when already logged in
-  const lq = document.getElementById("loginQuick");
-  if(lq) lq.classList.toggle("hidden", loggedIn);
-
-  loadDashboard();
 }
 
 async function loginUser(){
@@ -922,17 +927,27 @@ async function loginUser(){
   const btn = document.querySelector("#authModal .btn-blue");
   btn.disabled = true; btn.textContent = "Signing in…";
 
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  btn.disabled = false;
-  btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In`;
-
-  if(error){
-    toast("Sign-in failed: " + error.message, "err");
-    return;
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if(error){
+      if(error.message?.toLowerCase().includes("fetch") || error.message?.toLowerCase().includes("network")){
+        toast("Network error — check your connection and try again.", "err");
+      } else if(error.message?.toLowerCase().includes("invalid")){
+        toast("Incorrect email or password.", "err");
+      } else {
+        toast("Sign-in failed: " + error.message, "err");
+      }
+      return;
+    }
+    await refreshAuth();
+    closeAuth();
+    toast("Signed in successfully ✓");
+  } catch(e){
+    toast("Network error — could not reach the server.", "err");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In`;
   }
-  await refreshAuth();
-  closeAuth();
-  toast("Signed in successfully ✓");
 }
 
 async function logoutUser(){
@@ -953,27 +968,28 @@ function requireAdmin(action){
 
 /* ── Dashboard ── */
 async function loadDashboard(){
-  const { count:total } = await sb.from("students").select("*",{count:"exact",head:true});
-  document.getElementById("totalCount").textContent = total ?? 0;
+  try {
+    const { count:total } = await sb.from("students").select("*",{count:"exact",head:true});
+    document.getElementById("totalCount").textContent = total ?? 0;
 
-  const { data:gData } = await sb.from("students").select("gender");
-  const males   = gData ? gData.filter(r => r.gender?.toLowerCase().startsWith("m")).length : 0;
-  const females = gData ? gData.filter(r => r.gender?.toLowerCase().startsWith("f")).length : 0;
-  document.getElementById("maleCount").textContent = males;
-  document.getElementById("femaleCount").textContent = females;
+    const { count:active } = await sb.from("students").select("*",{count:"exact",head:true}).eq("status","Active");
+    document.getElementById("activeCount").textContent = active ?? 0;
 
-  const { data:cData } = await sb.from("students").select("class_name");
-  const classes = ["10A","10B","10C","10D","10E","10F","10G","10H","10I","10J"];
-  const counts = {};
-  classes.forEach(c => counts[c] = 0);
-  if(cData) cData.forEach(r => { if(counts[r.class_name] !== undefined) counts[r.class_name]++; });
+    const { data:cData } = await sb.from("students").select("class_name");
+    const classes = ["10A","10B","10C","10D","10E","10F","10G","10H","10I","10J"];
+    const counts = {};
+    classes.forEach(c => counts[c] = 0);
+    if(cData) cData.forEach(r => { if(counts[r.class_name] !== undefined) counts[r.class_name]++; });
 
-  document.getElementById("classesOverview").innerHTML = classes.map(c =>
-    `<div class="class-chip" onclick="goClass('${c}')">
-      <div class="cc-label">${c}</div>
-      <div class="cc-count">${counts[c]} student${counts[c]!==1?"s":""}</div>
-    </div>`
-  ).join("");
+    document.getElementById("classesOverview").innerHTML = classes.map(c =>
+      `<div class="class-chip" onclick="goClass('${c}')">
+        <div class="cc-label">${c}</div>
+        <div class="cc-count">${counts[c]} student${counts[c]!==1?"s":""}</div>
+      </div>`
+    ).join("");
+  } catch(e){
+    console.error("Dashboard load error:", e);
+  }
 }
 
 function goClass(cls){
@@ -982,7 +998,26 @@ function goClass(cls){
   showSection("explore");
 }
 
-/* ── Explore ── */
+/* ── Index number dropdown ── */
+function populateIndex(){
+  const cls = val("class_name");
+  const sel = document.getElementById("index_number");
+  sel.innerHTML = "";
+  if(!cls){
+    sel.disabled = true;
+    sel.innerHTML = `<option value="">Select class first…</option>`;
+    return;
+  }
+  sel.disabled = false;
+  sel.innerHTML = `<option value="">Select…</option>`;
+  for(let i = 1; i <= 60; i++){
+    const opt = document.createElement("option");
+    opt.value = i; opt.textContent = i;
+    sel.appendChild(opt);
+  }
+}
+
+
 function syncChipsFromSelect(){
   const cls = val("classFilter");
   document.querySelectorAll(".fc").forEach(f => {
@@ -1006,19 +1041,32 @@ async function loadCards(){
     <div>Loading records…</div></div>`;
 
   let query = sb.from("students")
-    .select("student_id,full_name,grade,class_name,phone,id_photo_path")
-    .order("student_id", { ascending:false });
+    .select("student_id,full_name,grade,class_name,phone,id_photo_path,index_number")
+    .order("class_name", { ascending:true })
+    .order("index_number", { ascending:true });
 
-  if(q) query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`);
+  const qNum = parseInt(q);
+  if(q){
+    if(!isNaN(qNum) && String(qNum) === q.trim()){
+      // pure number — search index, name, phone
+      query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%,index_number.eq.${qNum}`);
+    } else {
+      // text — search name and phone only
+      query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`);
+    }
+  }
   if(cls) query = query.eq("class_name", cls);
 
   const { data, error } = await query;
   box.innerHTML = "";
 
   if(error){
+    const hint = error.message?.includes("policy") || error.code === "42501"
+      ? "Access denied — the database administrator may need to allow public read access."
+      : "Failed to load records: " + esc(error.message);
     box.innerHTML = `<div class="empty-state" style="color:#fca5a5">
       <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
-      <div>Failed to load records: ${esc(error.message)}</div></div>`;
+      <div>${hint}</div></div>`;
     return;
   }
 
@@ -1043,7 +1091,7 @@ async function loadCards(){
       `<div class="sc-photo">${photoHtml}</div>
        <div class="sc-body">
          <div class="sc-name">${esc(s.full_name)}</div>
-         <div class="sc-class">${esc(s.class_name||"—")}</div>
+         <div class="sc-class">${esc(s.class_name||"—")}${s.index_number ? " · #" + esc(String(s.index_number)) : ""}</div>
        </div>
        <span class="sc-badge">${esc(s.class_name||"?")}</span>`;
     card.onclick = () => openDetails(s.student_id);
@@ -1087,17 +1135,17 @@ async function openDetails(id){
        ${photoHtml}
        <div>
          <div style="font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:-.02em">${esc(data.full_name||"")}</div>
-         <div style="color:var(--muted);font-size:.83rem;margin-top:4px">Grade ${esc(data.grade||"10")} &middot; Class ${esc(data.class_name||"—")}</div>
+         <div style="color:var(--muted);font-size:.83rem;margin-top:4px">Grade ${esc(data.grade||"10")} &middot; Class ${esc(data.class_name||"—")}${data.index_number ? " &middot; Index #" + esc(String(data.index_number)) : ""}</div>
          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${birthBtn}${delBtn}</div>
        </div>
      </div>
      <div class="detail-grid">
+       <div class="kv"><b>Index Number</b><span>${esc(data.index_number||"—")}</span></div>
+       <div class="kv"><b>Enrolment Status</b><span>${esc(data.status||"—")}</span></div>
        <div class="kv"><b>Phone</b><span>${esc(data.phone||"—")}</span></div>
        <div class="kv"><b>Email</b><span>${esc(data.email||"—")}</span></div>
        <div class="kv"><b>Date of Birth</b><span>${esc(data.date_of_birth||"—")}</span></div>
        <div class="kv"><b>Age</b><span>${esc(data.age||"—")}</span></div>
-       <div class="kv"><b>Gender</b><span>${esc(data.gender||"—")}</span></div>
-       <div class="kv"><b>Enrolment Status</b><span>${esc(data.status||"—")}</span></div>
        <div class="kv"><b>Mode of Transport</b><span>${esc(data.transport_method||"—")}</span></div>
        <div class="kv"><b>Address</b><span>${esc(addr)}</span></div>
        <div class="kv" style="grid-column:1/-1"><b>Optional Subjects</b><span>${esc(subjects)}</span></div>
@@ -1161,7 +1209,7 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
 
     const payload = {
       full_name: name,
-      gender: val("gender") || null,
+      index_number: val("index_number") ? Number(val("index_number")) : null,
       date_of_birth: document.getElementById("dob").value || null,
       age: val("age") ? Number(val("age")) : null,
       grade: val("grade") || "10",
@@ -1211,6 +1259,8 @@ sb.auth.onAuthStateChange((event, session) => {
   refreshAuth();
 });
 
+// Run initial auth check (handles page reload while already logged in)
+refreshAuth();
 showSection("home");
 </script>
 </body>
